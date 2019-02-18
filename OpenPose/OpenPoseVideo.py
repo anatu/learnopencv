@@ -2,10 +2,24 @@ import cv2
 import time
 import numpy as np
 
+# Notes
+# EDGE DETECTION FOR VIDEO: https://www.geeksforgeeks.org/real-time-edge-detection-using-opencv-python/
+
 
 class Skeletonizer():
 
 	def set_mode(self, mode):
+		# Specifies the type of model to use.
+		# The protoFile defines the architecture of the neural net (how layers are arranged)
+		# The .caffemodel file stores the pre-trained weights of the model
+		# MPII and COCO are two different training datasets
+
+		# Model architecture for VGGNet is as follows:
+		# First 10 layers perform convolution and pooling to create image feature vectors
+		# These are fed into a two-branch CNN
+		# The first branch computes confidence maps of body part locations
+		# The second branch computes affinity maps which encode the degree of association
+		# between body parts
 		MODE = mode
 
 		if MODE is "COCO":
@@ -98,8 +112,21 @@ class Skeletonizer():
 		    cv2.imshow('Output-Skeleton', frame)
 
 		    vid_writer.write(frame)
-
 		vid_writer.release()
+
+
+	# def track_video_from_feed(self):
+
+	# 	self.set_mode("MPI")
+	# 	inWidth, inHeight, threshold = self.set_params()
+		
+	# 	input_source = filename
+	# 	cap = cv2.VideoCapture(input_source)
+
+	# 	# cap = cv2.VideoCapture(0)
+	# 	hasFrame, frame = cap.read()
+	# 	vid_writer = cv2.VideoWriter('output.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (frame.shape[1],frame.shape[0]))
+	# 	net = cv2.dnn.readNetFromCaffe(self.protoFile, self.weightsFile)
 
 
 if __name__ == "__main__":
