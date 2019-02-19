@@ -124,8 +124,9 @@ class Skeletonizer():
 		        else :
 		            points.append(None)
 
-		    flatPoints = [str(item) for sublist in points for item in sublist]
-		    outfile.write(",".join(flatPoints) + "\n")
+		    if points:
+			    flatPoints = [str(item) for sublist in points for item in sublist]
+			    outfile.write(",".join(flatPoints) + "\n")
 
 
 		    # Draw Skeleton
