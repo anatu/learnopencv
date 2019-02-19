@@ -12,6 +12,7 @@ class Skeletonizer():
 		# Specifies the type of model to use.
 		# The protoFile defines the architecture of the neural net (how layers are arranged)
 		# The .caffemodel file stores the pre-trained weights of the model
+		# n_points is the number of data points used in that training dataset
 		# MPII and COCO are two different training datasets
 
 		# Model architecture for VGGNet is as follows:
@@ -36,8 +37,11 @@ class Skeletonizer():
 
 
 	def set_params(self):
+		# Specify width and height of the imput image
 		inWidth = 368
 		inHeight = 368
+		# Define the probability threshold used to draw circles onto the images
+		# to mark out keypoints
 		threshold = 0.1
 		return inWidth, inHeight, threshold
 
@@ -53,6 +57,8 @@ class Skeletonizer():
 		# cap = cv2.VideoCapture(0)
 		hasFrame, frame = cap.read()
 		vid_writer = cv2.VideoWriter('output.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (frame.shape[1],frame.shape[0]))
+
+		# Load the neural network using the prototxt architecture spec and the pre-trained weights
 		net = cv2.dnn.readNetFromCaffe(self.protoFile, self.weightsFile)
 
 		while cv2.waitKey(1) < 0:
