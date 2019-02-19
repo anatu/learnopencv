@@ -3,3 +3,4 @@
 *.mp4
 *.avi
 *.csv
+OpenPose/output_points.csv
