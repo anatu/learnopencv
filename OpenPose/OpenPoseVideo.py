@@ -122,7 +122,7 @@ class Skeletonizer():
 		            # Add the point to the list if the probability is greater than the threshold
 		            points.append((int(x), int(y)))
 		        else :
-		            points.append("N/A")
+		            points.append("$")
 
 
 		    flatPoints = [str(item) for sublist in points for item in sublist]
@@ -134,7 +134,7 @@ class Skeletonizer():
 		        partA = pair[0]
 		        partB = pair[1]
 
-		        if points[partA] != "N/A" and points[partB] != "N/A":
+		        if points[partA] != "$" and points[partB] != "$":
 		            cv2.line(frame, points[partA], points[partB], (0, 255, 255), 3, lineType=cv2.LINE_AA)
 		            cv2.circle(frame, points[partA], 8, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
 		            cv2.circle(frame, points[partB], 8, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
