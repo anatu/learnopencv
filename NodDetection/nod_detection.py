@@ -8,7 +8,10 @@ from ffpyplayer.player import MediaPlayer
 fourcc = cv2.VideoWriter_fourcc(*"XVID")
 out = cv2.VideoWriter("/home/sm/Desktop/nodcontrol.avi",fourcc, 20.0, (640,480))
 # Path root for image files on Y/N gesture trigger
-img_root = os.path.join(os.path.expanduser("~"), "Desktop/learnopencv/NodDetection/resources")
+# Dev
+# img_root = os.path.join(os.path.expanduser("~"), "Desktop/learnopencv/NodDetection/resources")
+# Production
+img_root = os.path.join(os.path.expanduser("~"), "Desktop/learnopencv/NodDetection/prodResources")
 
 # Capture source video and fix the dimensions
 cap = cv2.VideoCapture(0)
@@ -39,13 +42,32 @@ face_cascade = cv2.CascadeClassifier(os.path.join(basepath, "haarcascade_frontal
 #######################################################################
 # Function to build the decision-tree data structure which stores the media we want to be showing
 def build_tree():
-  root = "C:/users/anatu/desktop"
+
+  # root = "C:/users/anatu/desktop"
+  # result = dict()
+  # # Initialize the current state to root
+  # result["current"] = "root"
+  # result["root"] = os.path.join(img_root, "waiter_test.jpg")
+  # result["Y"] = os.path.join(root, "Nod_Demo.mp4")
+  # result["N"] = os.path.join(root, "sound_test.mp4")
+
   result = dict()
-  # Initialize the current state to root
+  result["root"] = os.path.join(img_root, "Background.mp4")
   result["current"] = "root"
-  result["root"] = os.path.join(img_root, "waiter_test.jpg")
-  result["Y"] = os.path.join(root, "Nod_Demo.mp4")
-  result["N"] = os.path.join(root, "sound_test.mp4")
+  result["Y"] = os.path.join(img_root, "I2_Yes.mp4")
+  result["N"] = os.path.join(img_root, "I2_No.mp4")
+  result["NN"] = os.path.join(img_root, "I3_No_No.mp4")
+  result["YY"] = os.path.join(img_root, "I3_Yes_Yes.mp4")
+  result["NY"] = os.path.join(img_root, "I3_No_Yes.mp4")
+  result["YN"] = os.path.join(img_root, "I3_Yes_No.mp4")
+  result["YNN"] = os.path.join(img_root, "I4.mp4")
+  result["YNY"] = os.path.join(img_root, "I4.mp4")
+  result["NNY"] = os.path.join(img_root, "I4.mp4")
+  result["NNN"] = os.path.join(img_root, "I4.mp4")
+  result["NYN"] = os.path.join(img_root, "I4.mp4")
+  result["NYY"] = os.path.join(img_root, "I4.mp4")
+
+
   return result
 
 # Euclidean distance between two points in (x,y) space
@@ -66,7 +88,7 @@ def main():
   #define movement thresholds to recognize gestures
   max_head_movement = 20
   movement_threshold = 50
-  gesture_threshold = 150
+  gesture_threshold = 100
   # Set the number of frames for which to display the recognized gesture
   # (i.e. how long to show Yes or No after gesture is detected) 
   gesture_show = 30
@@ -88,6 +110,7 @@ def main():
   # Flag to force face detection in the first run
   start_flag = True
   face_found = False
+  wait = False
 
   while True:
     if start_flag == True or face_found == False:
@@ -150,20 +173,22 @@ def main():
       gesture = "Yes"
 
     if gesture:
-      if not mediaTree["current"] == "root":
-        if gesture == "Yes":
-          newCurrent = mediaTree["current"] + "Y"
-          media_path = mediaTree[mediaTree["current"] + "Y"]
-        if gesture == "No":
-          newCurrent = mediaTree["current"] + "N"
-          media_path = mediaTree[mediaTree["current"] + "N"]
-      else:
-        if gesture == "Yes":
-          newCurrent = "Y"
-          media_path = mediaTree["Y"]
-        if gesture == "No":
-          newCurrent = "N"
-          media_path = mediaTree["N"]
+      if mediaTree["current"] == "root":
+        mediaTree["current"] = ""
+
+      if gesture == "Yes":
+        newCurrent = mediaTree["current"] + "Y"
+        media_path = mediaTree[mediaTree["current"] + "Y"]
+      if gesture == "No":
+        newCurrent = mediaTree["current"] + "N"
+        media_path = mediaTree[mediaTree["current"] + "N"]
+      # else:
+      #   if gesture == "Yes":
+      #     newCurrent = "Y"
+      #     media_path = mediaTree["Y"]
+      #   if gesture == "No":
+      #     newCurrent = "N"
+      #     media_path = mediaTree["N"]
 
 
       mediaTree["current"] = newCurrent
@@ -185,17 +210,35 @@ def main():
 
           if cv2.waitKey(20) & 0xFF == ord('q'):
             break
+      wait = True  
+
 
       gesture = False
       x_movement = 0
       y_movement = 0
 
     # Play the root "waiter state" which shows the starting prompt 
-    elif mediaTree["current"] == "root":
+    elif mediaTree["current"] == "root" and wait == False:
       waiterPath = mediaTree["root"]
-      wImg = cv2.imread(waiterPath)
-      cv2.imshow('waiter_img',wImg)
+      media_cap = cv2.VideoCapture(waiterPath)
+      audio_cap = MediaPlayer(waiterPath)
+      while(media_cap.isOpened()):
+          _, mFrame = media_cap.read()
+          audio_frame, val = audio_cap.get_frame()
 
+          try:
+            cv2.imshow('media',mFrame)
+          except cv2.error:
+            break
+
+          if val != 'eof' and audio_frame is not None:
+            img, t = audio_frame
+
+          if cv2.waitKey(30) & 0xFF == ord('q'):
+            break
+      media_cap.release()
+      cv2.destroyWindow("media")
+      wait = True
 
     # if gesture:
     #   cv2.putText(frame,"Gesture Detected: " + gesture,(50,50), font, 1.2,(0,0,255),3)
@@ -221,16 +264,7 @@ def main():
       y_movement = 0
       gesture_show = 60 #number of frames a gesture is shown
 
-    # Logic to check if the points have been lost, and signal to restart the
-    # face-finding flow
-    d = distance(get_coords(p0), get_coords(p1))
-    print(d)
-    
     p0 = p1
-
-    # Concatenate media with face video feed
-    orig_img = cv2.imread(os.path.join(img_root, "no_img.jpg"))
-    newimg = cv2.resize(orig_img, (MEDIA_WIDTH, MEDIA_HEIGHT))
 
     # final = cv2.hconcat([newimg, newimg])
     cv2.imshow("face_video",frame)
