@@ -37,7 +37,12 @@ face_cascade = cv2.CascadeClassifier(os.path.join(basepath, "haarcascade_frontal
 # Helper functions
 #######################################################################
 # Function to build the decision-tree data structure which stores the media we want to be showing
-# TODO: ADD THIS!
+# def build_tree():
+#   result = dict()
+#   result["Y"] = {"media": }
+#   result["N"] = {}
+#   result[""]
+#   return result
 
 #dinstance function
 def distance(x,y):
@@ -142,22 +147,39 @@ def main():
       gesture = "Yes"
 
     if gesture:
-      cv2.putText(frame,"Gesture Detected: " + gesture,(50,50), font, 1.2,(0,0,255),3)
-      if gesture == "No":
-        img = cv2.imread(os.path.join(img_root, "no_img.jpg"))
-      elif gesture == "Yes":
-        img = cv2.imread(os.path.join(img_root, "yes_img.jpg"))
-      newimg = cv2.resize(orig_img, (MEDIA_WIDTH, MEDIA_HEIGHT))
-      cv2.imshow("media", img)
-      cv2.putText(img=frame, text='Gesture found!',org=(100,100), fontFace=font, fontScale=2, color=(255,255,255))
-      cv2.waitKey(2000)
-      # Reset the gesture recognition parameters
+      media_cap = cv2.VideoCapture('C:/Users/anatu/desktop/Nod_Demo.mp4')
+      while(media_cap.isOpened()):
+          _, mFrame = media_cap.read()
+          try:
+            cv2.imshow('media',mFrame)
+          # Break if assertionerror on image show indicating that the video is over
+          except cv2.error:
+            cv2.destroyWindow("media")
+            break
+          if cv2.waitKey(20) & 0xFF == ord('q'):
+            break
+
       gesture = False
       x_movement = 0
       y_movement = 0
-    else:
-      img = cv2.imread(os.path.join(img_root, "blank_img.jpg"))
-      cv2.imshow("media", img)
+
+    # if gesture:
+    #   cv2.putText(frame,"Gesture Detected: " + gesture,(50,50), font, 1.2,(0,0,255),3)
+    #   if gesture == "No":
+    #     img = cv2.imread(os.path.join(img_root, "no_img.jpg"))
+    #   elif gesture == "Yes":
+    #     img = cv2.imread(os.path.join(img_root, "yes_img.jpg"))
+    #   newimg = cv2.resize(orig_img, (MEDIA_WIDTH, MEDIA_HEIGHT))
+    #   cv2.imshow("media", img)
+    #   cv2.putText(img=frame, text='Gesture found!',org=(100,100), fontFace=font, fontScale=2, color=(255,255,255))
+    #   cv2.waitKey(2000)
+    #   # Reset the gesture recognition parameters
+    #   gesture = False
+    #   x_movement = 0
+    #   y_movement = 0
+    # else:
+    #   img = cv2.imread(os.path.join(img_root, "blank_img.jpg"))
+    #   cv2.imshow("media", img)
 
     if gesture_show == 0:
       gesture = False
