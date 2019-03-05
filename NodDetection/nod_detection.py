@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 from datetime import datetime
+from ffpyplayer.player import MediaPlayer
 
 # Output video codec and writer
 fourcc = cv2.VideoWriter_fourcc(*"XVID")
@@ -37,19 +38,20 @@ face_cascade = cv2.CascadeClassifier(os.path.join(basepath, "haarcascade_frontal
 # Helper functions
 #######################################################################
 # Function to build the decision-tree data structure which stores the media we want to be showing
-# def build_tree():
-#   result = dict()
-#   result["Y"] = {"media": }
-#   result["N"] = {}
-#   result[""]
-#   return result
+def build_tree():
+  root = "C:/Users/anatu/desktop"
+  result = dict()
+  result["Y"] = {"media": os.path.join(root, "Nod_Demo.mp4")}
+  result["N"] = {}
+  result[""]
+  return result
 
-#dinstance function
+# Euclidean distance between two points in (x,y) space
 def distance(x,y):
    import math
    return math.sqrt((x[0]-y[0])**2+(x[1]-y[1])**2)
 
-#function to get coordinates
+# Function to get coordinates of point
 def get_coords(p1):
    try: return int(p1[0][0][0]), int(p1[0][0][1])
    except: return int(p1[0][0]), int(p1[0][1])
@@ -72,15 +74,6 @@ def main():
   #######################################################################
 
   #######################################################################
-  # Find the face in the image
-
-  #######################################################################
-    # if pressed_key & 0xFF == ord('z'):
-    #     is_hand_hist_created = True
-    #     hand_hist = hand_histogram(frame)
-
-
-  #######################################################################
   # Detect gestures once face has been identified in the image
   gesture = False
   x_movement = 0
@@ -95,6 +88,10 @@ def main():
     if start_flag == True or face_found == False:
       start_flag = False
       frame_num = 0
+
+      # Face finding step - Places the points which track
+      # x and y displacement on the face for gesture detection
+      #######################################################
       while frame_num < 30:
         # Take first frame and find corners in it
         frame_num += 1
@@ -115,6 +112,7 @@ def main():
     # to reset the face detection flow in case there's a bug
     if cv2.waitKey(1) & 0xFF == ord('z'):
       face_found = False
+    #######################################################
 
     # Reset x/y displacements if the max number
     # of frames have passed
@@ -147,15 +145,22 @@ def main():
       gesture = "Yes"
 
     if gesture:
-      media_cap = cv2.VideoCapture('C:/Users/anatu/desktop/Nod_Demo.mp4')
+      media_path = 'C:/Users/anatu/desktop/sound_test.mp4'
+      media_cap = cv2.VideoCapture(media_path)
+      audio_cap = MediaPlayer(media_path)
       while(media_cap.isOpened()):
           _, mFrame = media_cap.read()
+          audio_frame, val = audio_cap.get_frame()
+
           try:
             cv2.imshow('media',mFrame)
-          # Break if assertionerror on image show indicating that the video is over
           except cv2.error:
             cv2.destroyWindow("media")
             break
+
+          if val != 'eof' and audio_frame is not None:
+            img, t = audio_frame
+
           if cv2.waitKey(20) & 0xFF == ord('q'):
             break
 
