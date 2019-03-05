@@ -2,17 +2,19 @@ import cv2
 import numpy as np
 import os
 from datetime import datetime
-from PIL import Image
 
 # Output video codec and writer
 fourcc = cv2.VideoWriter_fourcc(*"XVID")
 out = cv2.VideoWriter("/home/sm/Desktop/nodcontrol.avi",fourcc, 20.0, (640,480))
-
 # Path root for image files on Y/N gesture trigger
-img_root = "C:/users/anatu/Desktop"
+img_root = os.path.join(os.path.expanduser("~"), "Desktop/learnopencv/NodDetection/resources")
 
 #capture source video
 cap = cv2.VideoCapture(0)
+MEDIA_WIDTH = 600
+MEDIA_HEIGHT = 400
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, MEDIA_WIDTH)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, MEDIA_HEIGHT)
 
 #params for ShiTomasi corner detection
 feature_params = dict( maxCorners = 100,
@@ -34,6 +36,9 @@ face_cascade = cv2.CascadeClassifier(os.path.join(basepath, "haarcascade_frontal
 
 # Helper functions
 #######################################################################
+# Function to build the decision-tree data structure which stores the media we want to be showing
+
+
 #dinstance function
 def distance(x,y):
    import math
@@ -95,7 +100,7 @@ def main():
         for (x,y,w,h) in faces:
           cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
           face_found = True
-        cv2.imshow("image",frame)
+        cv2.imshow("face_video",frame)
         out.write(frame)
         cv2.waitKey(1)
       face_center = x+w/2, y+h/3
@@ -139,10 +144,13 @@ def main():
     if gesture:
       cv2.putText(frame,"Gesture Detected: " + gesture,(50,50), font, 1.2,(0,0,255),3)
       if gesture == "No":
-        img = Image.open(os.path.join(img_root, "no_img.jpg"))
+        img = cv2.imread(os.path.join(img_root, "no_img.jpg"))
       elif gesture == "Yes":
-        img = Image.open(os.path.join(img_root, "yes_img.jpg"))
-      img.show()
+        img = cv2.imread(os.path.join(img_root, "yes_img.jpg"))
+      newimg = cv2.resize(orig_img, (MEDIA_WIDTH, MEDIA_HEIGHT))
+      cv2.imshow("media", img)
+    else:
+      cv2.imshow("media", os.)
 
       # Reset the gesture recognition parameters
       gesture = False
@@ -162,7 +170,12 @@ def main():
     
     p0 = p1
 
-    cv2.imshow("image",frame)
+    # Concatenate media with face video feed
+    orig_img = cv2.imread(os.path.join(img_root, "no_img.jpg"))
+    newimg = cv2.resize(orig_img, (MEDIA_WIDTH, MEDIA_HEIGHT))
+
+    # final = cv2.hconcat([newimg, newimg])
+    cv2.imshow("face_video",frame)
     out.write(frame)
     cv2.waitKey(1)
 
