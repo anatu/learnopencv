@@ -37,7 +37,7 @@ face_cascade = cv2.CascadeClassifier(os.path.join(basepath, "haarcascade_frontal
 # Helper functions
 #######################################################################
 # Function to build the decision-tree data structure which stores the media we want to be showing
-
+# TODO: ADD THIS!
 
 #dinstance function
 def distance(x,y):
@@ -94,12 +94,12 @@ def main():
         # Take first frame and find corners in it
         frame_num += 1
         ret, frame = cap.read()
-        cv2.putText(img=frame, text='Finding face...',org=(10,400), fontFace=font, fontScale=2, color=(255,255,255))
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(frame_gray, 1.3, 5)
         for (x,y,w,h) in faces:
           cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
           face_found = True
+        cv2.putText(img=frame, text='Finding face...',org=(0,0), fontFace=font, fontScale=2, color=(255,255,255))
         cv2.imshow("face_video",frame)
         out.write(frame)
         cv2.waitKey(1)
@@ -149,13 +149,15 @@ def main():
         img = cv2.imread(os.path.join(img_root, "yes_img.jpg"))
       newimg = cv2.resize(orig_img, (MEDIA_WIDTH, MEDIA_HEIGHT))
       cv2.imshow("media", img)
-    else:
-      cv2.imshow("media", os.)
-
+      cv2.putText(img=frame, text='Gesture found!',org=(100,100), fontFace=font, fontScale=2, color=(255,255,255))
+      cv2.waitKey(2000)
       # Reset the gesture recognition parameters
       gesture = False
       x_movement = 0
       y_movement = 0
+    else:
+      img = cv2.imread(os.path.join(img_root, "blank_img.jpg"))
+      cv2.imshow("media", img)
 
     if gesture_show == 0:
       gesture = False
