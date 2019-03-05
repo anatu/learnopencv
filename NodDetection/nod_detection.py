@@ -10,7 +10,7 @@ out = cv2.VideoWriter("/home/sm/Desktop/nodcontrol.avi",fourcc, 20.0, (640,480))
 # Path root for image files on Y/N gesture trigger
 img_root = os.path.join(os.path.expanduser("~"), "Desktop/learnopencv/NodDetection/resources")
 
-#capture source video
+# Capture source video and fix the dimensions
 cap = cv2.VideoCapture(0)
 MEDIA_WIDTH = 600
 MEDIA_HEIGHT = 400
@@ -39,11 +39,13 @@ face_cascade = cv2.CascadeClassifier(os.path.join(basepath, "haarcascade_frontal
 #######################################################################
 # Function to build the decision-tree data structure which stores the media we want to be showing
 def build_tree():
-  root = "C:/Users/anatu/desktop"
+  root = "C:/users/anatu/desktop"
   result = dict()
-  result["Y"] = {"media": os.path.join(root, "Nod_Demo.mp4")}
-  result["N"] = {}
-  result[""]
+  # Initialize the current state to root
+  result["current"] = "root"
+  result["root"] = os.path.join(img_root, "waiter_test.jpg")
+  result["Y"] = os.path.join(root, "Nod_Demo.mp4")
+  result["N"] = os.path.join(root, "sound_test.mp4")
   return result
 
 # Euclidean distance between two points in (x,y) space
@@ -70,6 +72,9 @@ def main():
   gesture_show = 30
   # Max number of frames for which a gesture can be detected
   gesture_timescale = 120
+
+  # Build the tree with all the media paths
+  mediaTree = build_tree()
 
   #######################################################################
 
@@ -145,7 +150,24 @@ def main():
       gesture = "Yes"
 
     if gesture:
-      media_path = 'C:/Users/anatu/desktop/sound_test.mp4'
+      if not mediaTree["current"] == "root":
+        if gesture == "Yes":
+          newCurrent = mediaTree["current"] + "Y"
+          media_path = mediaTree[mediaTree["current"] + "Y"]
+        if gesture == "No":
+          newCurrent = mediaTree["current"] + "N"
+          media_path = mediaTree[mediaTree["current"] + "N"]
+      else:
+        if gesture == "Yes":
+          newCurrent = "Y"
+          media_path = mediaTree["Y"]
+        if gesture == "No":
+          newCurrent = "N"
+          media_path = mediaTree["N"]
+
+
+      mediaTree["current"] = newCurrent
+
       media_cap = cv2.VideoCapture(media_path)
       audio_cap = MediaPlayer(media_path)
       while(media_cap.isOpened()):
@@ -167,6 +189,13 @@ def main():
       gesture = False
       x_movement = 0
       y_movement = 0
+
+    # Play the root "waiter state" which shows the starting prompt 
+    elif mediaTree["current"] == "root":
+      waiterPath = mediaTree["root"]
+      wImg = cv2.imread(waiterPath)
+      cv2.imshow('waiter_img',wImg)
+
 
     # if gesture:
     #   cv2.putText(frame,"Gesture Detected: " + gesture,(50,50), font, 1.2,(0,0,255),3)
