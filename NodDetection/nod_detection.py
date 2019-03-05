@@ -2,11 +2,14 @@ import cv2
 import numpy as np
 import os
 from datetime import datetime
+from PIL import Image
 
-
-
+# Output video codec and writer
 fourcc = cv2.VideoWriter_fourcc(*"XVID")
 out = cv2.VideoWriter("/home/sm/Desktop/nodcontrol.avi",fourcc, 20.0, (640,480))
+
+# Path root for image files on Y/N gesture trigger
+img_root = "C:/users/anatu/Desktop"
 
 #capture source video
 cap = cv2.VideoCapture(0)
@@ -16,6 +19,8 @@ feature_params = dict( maxCorners = 100,
                        qualityLevel = 0.3,
                        minDistance = 7,
                        blockSize = 7 )
+
+
 # Parameters for lucas kanade optical flow
 lk_params = dict( winSize  = (15,15),
                  maxLevel = 2,
@@ -40,8 +45,6 @@ def get_coords(p1):
    except: return int(p1[0][0]), int(p1[0][1])
 #######################################################################
 
-
-
 def main():
   #######################################################################
   # Set the model parameters
@@ -49,31 +52,18 @@ def main():
   #define movement thresholds to recognize gestures
   max_head_movement = 20
   movement_threshold = 50
-  gesture_threshold = 175
+  gesture_threshold = 150
   # Set the number of frames for which to display the recognized gesture
   # (i.e. how long to show Yes or No after gesture is detected) 
-  gesture_show = 60 
+  gesture_show = 30
+  # Max number of frames for which a gesture can be detected
+  gesture_timescale = 120
+
   #######################################################################
 
   #######################################################################
   # Find the face in the image
-  face_found = False
-  frame_num = 0
-  while frame_num < 30:
-    # Take first frame and find corners in it
-    frame_num += 1
-    ret, frame = cap.read()
-    cv2.putText(img=frame, text='Finding face...',org=(10,400), fontFace=font, fontScale=2, color=(255,255,255))
-    frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(frame_gray, 1.3, 5)
-    for (x,y,w,h) in faces:
-      cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
-      face_found = True
-    cv2.imshow("image",frame)
-    out.write(frame)
-    cv2.waitKey(1)
-  face_center = x+w/2, y+h/3
-  p0 = np.array([[face_center]], np.float32)
+
   #######################################################################
     # if pressed_key & 0xFF == ord('z'):
     #     is_hand_hist_created = True
@@ -85,11 +75,37 @@ def main():
   gesture = False
   x_movement = 0
   y_movement = 0
-  # Max numbre of frames
-  gesture_timescale = 30
   gesture_fc = 0
 
-  while face_found == True:
+  # Flag to force face detection in the first run
+  start_flag = True
+  face_found = False
+
+  while True:
+    if start_flag == True or face_found == False:
+      start_flag = False
+      frame_num = 0
+      while frame_num < 30:
+        # Take first frame and find corners in it
+        frame_num += 1
+        ret, frame = cap.read()
+        cv2.putText(img=frame, text='Finding face...',org=(10,400), fontFace=font, fontScale=2, color=(255,255,255))
+        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(frame_gray, 1.3, 5)
+        for (x,y,w,h) in faces:
+          cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
+          face_found = True
+        cv2.imshow("image",frame)
+        out.write(frame)
+        cv2.waitKey(1)
+      face_center = x+w/2, y+h/3
+      p0 = np.array([[face_center]], np.float32)
+
+    # Press the "z" key once the face has been found
+    # to reset the face detection flow in case there's a bug
+    if cv2.waitKey(1) & 0xFF == ord('z'):
+      face_found = False
+
     # Reset x/y displacements if the max number
     # of frames have passed
     gesture_fc += 1
@@ -119,16 +135,31 @@ def main():
       gesture = "No"
     if y_movement > gesture_threshold:
       gesture = "Yes"
-    if gesture and gesture_show > 0:
+
+    if gesture:
       cv2.putText(frame,"Gesture Detected: " + gesture,(50,50), font, 1.2,(0,0,255),3)
-      gesture_show -=1
+      if gesture == "No":
+        img = Image.open(os.path.join(img_root, "no_img.jpg"))
+      elif gesture == "Yes":
+        img = Image.open(os.path.join(img_root, "yes_img.jpg"))
+      img.show()
+
+      # Reset the gesture recognition parameters
+      gesture = False
+      x_movement = 0
+      y_movement = 0
+
     if gesture_show == 0:
       gesture = False
       x_movement = 0
       y_movement = 0
       gesture_show = 60 #number of frames a gesture is shown
 
-    print distance(get_coords(p0), get_coords(p1))
+    # Logic to check if the points have been lost, and signal to restart the
+    # face-finding flow
+    d = distance(get_coords(p0), get_coords(p1))
+    print(d)
+    
     p0 = p1
 
     cv2.imshow("image",frame)
