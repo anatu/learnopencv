@@ -138,7 +138,7 @@ def main():
 
     # Press the "z" key once the face has been found
     # to reset the face detection flow in case there's a bug
-    if cv2.waitKey(1) & 0xFF == ord('z'):
+    if cv2.waitKey(5) & 0xFF == ord('z'):
       face_found = False
     #######################################################
 
@@ -182,14 +182,6 @@ def main():
       if gesture == "No":
         newCurrent = mediaTree["current"] + "N"
         media_path = mediaTree[mediaTree["current"] + "N"]
-      # else:
-      #   if gesture == "Yes":
-      #     newCurrent = "Y"
-      #     media_path = mediaTree["Y"]
-      #   if gesture == "No":
-      #     newCurrent = "N"
-      #     media_path = mediaTree["N"]
-
 
       mediaTree["current"] = newCurrent
 
@@ -229,6 +221,8 @@ def main():
           try:
             cv2.imshow('media',mFrame)
           except cv2.error:
+            # media_cap.release()
+            cv2.destroyWindow("media")
             break
 
           if val != 'eof' and audio_frame is not None:
@@ -236,27 +230,7 @@ def main():
 
           if cv2.waitKey(30) & 0xFF == ord('q'):
             break
-      media_cap.release()
-      cv2.destroyWindow("media")
       wait = True
-
-    # if gesture:
-    #   cv2.putText(frame,"Gesture Detected: " + gesture,(50,50), font, 1.2,(0,0,255),3)
-    #   if gesture == "No":
-    #     img = cv2.imread(os.path.join(img_root, "no_img.jpg"))
-    #   elif gesture == "Yes":
-    #     img = cv2.imread(os.path.join(img_root, "yes_img.jpg"))
-    #   newimg = cv2.resize(orig_img, (MEDIA_WIDTH, MEDIA_HEIGHT))
-    #   cv2.imshow("media", img)
-    #   cv2.putText(img=frame, text='Gesture found!',org=(100,100), fontFace=font, fontScale=2, color=(255,255,255))
-    #   cv2.waitKey(2000)
-    #   # Reset the gesture recognition parameters
-    #   gesture = False
-    #   x_movement = 0
-    #   y_movement = 0
-    # else:
-    #   img = cv2.imread(os.path.join(img_root, "blank_img.jpg"))
-    #   cv2.imshow("media", img)
 
     if gesture_show == 0:
       gesture = False
