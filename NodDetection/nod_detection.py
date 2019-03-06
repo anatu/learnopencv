@@ -26,7 +26,6 @@ feature_params = dict( maxCorners = 100,
                        minDistance = 7,
                        blockSize = 7 )
 
-
 # Parameters for lucas kanade optical flow
 lk_params = dict( winSize  = (15,15),
                  maxLevel = 2,
@@ -228,8 +227,13 @@ def main():
           if val != 'eof' and audio_frame is not None:
             img, t = audio_frame
 
+          # Can press q to skip playing the current media
           if cv2.waitKey(30) & 0xFF == ord('q'):
             break
+      media_cap.release()
+      # cv2.destroyAllWindows("media")
+      cv2.destroyWindow("media")
+      # Set wait flag to True to revert to wait media
       wait = True
 
     if gesture_show == 0:
