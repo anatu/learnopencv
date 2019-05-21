@@ -69,8 +69,6 @@ def main():
   # Max number of frames for which a gesture can be detected
   gesture_timescale = 120
 
-  # Build the tree with all the media paths
-  mediaTree = build_tree()
 
   #######################################################################
 
@@ -146,6 +144,8 @@ def main():
       gesture = "Yes"
 
     if gesture and gesture_show > 0:
+      # Place text on the screen
+      cv2.putText(frame,'Gesture Detected: ' + gesture,(50,50), font, 1.2,(0,0,255),3)
       # Reset indicators
       gesture = False
       x_movement = 0
@@ -153,18 +153,13 @@ def main():
       # Decrement count of frames to show gesture detection for
       gesture_show = gesture_show - 1
 
-      send_socket_signal(UDP_IP, UDP_PORT)
       #########################################
       #########################################
       # TODO: TRIGGER LOGIC INTO UNITY!
       #########################################
       #########################################
+      send_socket_signal(UDP_IP, UDP_PORT)
 
-    if gesture_show == 0:
-      gesture = False
-      x_movement = 0
-      y_movement = 0
-      gesture_show = 60 #number of frames a gesture is shown
 
     p0 = p1
 
